@@ -1,15 +1,18 @@
 #include <stdio.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include <stdlib.h>
+#include <math.h>
+
+#include "mapping.h"
+#include "pixel.h"
+
+int aux(pixel_uint8 p){
+	printf("%d %d %d\n", p.r, p.g, p.b);
+	return 1;
+}
 
 int main(){
+	unsigned char ps[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+	aux((pixel_uint8) {ps[0], ps[1], ps[2]});
 	
-	int width, height, n;
-	unsigned char* data = stbi_load("curses_640x300.png", &width, &height, &n, 0);
-	printf("width: %d, height: %d, n: %d\n", width, height, n);
-	stbi_write_png("test_write.png", width, height, n, data, 0);
-	stbi_image_free(data);
 	return 1;
 }
