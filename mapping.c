@@ -48,6 +48,17 @@ void int_list_free(int_list** list){
 	*list = NULL;
 }
 
+int int_list_contains(int_list* list, int el){
+	int_list* walk = list;
+	
+	while(walk != NULL){
+		if(walk->el == el){ return 1; }
+		walk = walk->next;
+	}
+	
+	return 0;
+}
+
 // Mapping functions
 //int mapping_update(mapping** map, pixel p, int idx){
 int mapping_update(mapping** map, pixel_uint8 p, int idx){

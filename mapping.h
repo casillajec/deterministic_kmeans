@@ -17,6 +17,8 @@
 	
 	void int_list_free(int_list** list);
 	
+	int int_list_contains(int_list* list, int el);
+	
 	// MAPPING
 	typedef struct{
 		//pixel p;

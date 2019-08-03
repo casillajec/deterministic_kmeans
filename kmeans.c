@@ -1,42 +1,67 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 #include "kmeans.h"
 #include "pixel.h"
+#include "mapping.h"
 
 #define EPS 1.0E-3
 
 void random_init(int n_datap, pixel_uint8* data, int k, pixel* c_means){
-	int ridx;
-	for(int i = 0; i < k; i++){
+	// Seed rng
+	srand(time(0));
+	
+	// Initalize strucures and first random idx
+	int_list* seen = NULL;
+	int ridx = rand()%n_datap;
+	c_means[0].r = data[ridx].r;
+	c_means[0].g = data[ridx].g;
+	c_means[0].b = data[ridx].b;
+	int_list_add_front(&seen, ridx);
+	
+	// Find different random indices
+	for(int i = 1; i < k; i++){;
 		ridx = rand()%n_datap;
-		c_means[i] = (pixel){data[ridx].r, data[ridx].g, data[ridx].b};
+		
+		// Generate new idx until an unseen is generated
+		while(int_list_contains(seen, ridx)){ ridx = rand()%n_datap; }
+		
+		//c_means[i] = (pixel){data[ridx].r, data[ridx].g, data[ridx].b};
+		c_means[i].r = data[ridx].r;
+		c_means[i].g = data[ridx].g;
+		c_means[i].b = data[ridx].b;
+		int_list_add_front(&seen, ridx);
 	}
+	
+	// Free the allocated structures
+	int_list_free(&seen);
 }
 
 float euclidean_distance(pixel* p1, pixel* p2){
 	return sqrt( pow(p2->r - p1->r, 2) + pow(p2->g - p1->g, 2) + pow(p2->b - p1->b, 2) );
 }
 
-float rgb_distance(pixel* p1, pixel*p2){
-	float r = (p1->r + p2->r)/2;
-	float s[3] = {2+(r/256), 4, (2+(255-r))/256};
-	float px[3] = {p1->r - p2->r, p1->g - p2->g, p1->b - p2->b};
-	return sqrt(px[0]*px[0]*s[0] + px[1]*px[1]*s[1] + px[2]*px[2]*s[2]);
+
+float rgb_distance(pixel* p1, pixel* p2){
+	float r, s[3], px[3];
+	r = (p1->r + p2->r)/2;
+	s[0] = (2+(r/256)); s[1] = 4; s[2] = ((2+(255-r))/256);
+	px[0] = p1->r - p2->r; px[1] =  p1->g - p2->g; px[2] = p1->b - p2->b;
+	return sqrt(s[0]*px[0]*px[0] + s[1]*px[1]*px[1] + s[2]*px[2]*px[2]);
 }
 
 void clusterize(int n_datap, pixel_uint8* data, int k, pixel* c_means, int* clusters, float (*distance_f)(pixel*, pixel*)){
 	float dis, min_dis;
-	int min_idx;
-	int i, j;
+	int min_idx, i, j;
 	pixel aux;
 	
 	for(i = 0; i < n_datap; i++){
 		min_dis = 1000000;
 		min_idx = -1;
 		for(j = 0; j < k; j++){
-			aux = (pixel){data[i].r, data[i].g, data[i].b};
+			aux.r = data[i].r; aux.g = data[i].g; aux.b = data[i].b;
 			dis = distance_f(&aux, &c_means[j]);
 			if( dis < min_dis){
 				min_dis = dis;
@@ -45,7 +70,6 @@ void clusterize(int n_datap, pixel_uint8* data, int k, pixel* c_means, int* clus
 		}
 		clusters[i] = min_idx;
 	}
-	
 }
 
 void update_means(int n_datap, pixel_uint8* data, int k, pixel* c_means, int* clusters, int* data_count, int* mean_count) {
