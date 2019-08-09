@@ -1,5 +1,8 @@
 *.png
 *.jpg
+*.JPG
+*.jpeg
+*.txt
 cluster_image
 test.c
 test

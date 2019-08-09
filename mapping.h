@@ -8,29 +8,28 @@
 		int el;
 		struct int_list* next;
 	} int_list;
-	
+
 	int int_list_add_front(int_list** list, int el);
-	
+
 	void int_list_print(int_list* list);
-	
+
 	int int_list_length(int_list* list);
-	
+
 	void int_list_free(int_list** list);
-	
+
 	int int_list_contains(int_list* list, int el);
-	
+
 	// MAPPING
 	typedef struct{
-		//pixel p;
 		pixel_uint8 p;
-		int_list* indices;
+		unsigned int unique_index;
+		unsigned int data_count;
 		UT_hash_handle hh;
 	} mapping;
-	
-	//int mapping_update(mapping** map, pixel p, int idx);
-	int mapping_update(mapping** map, pixel_uint8 p, int idx);
-	
+
+	int mapping_update(mapping** map, pixel_uint8* p_ptr, int idx);
+
 	void mapping_print(mapping* map);
-	
+
 	void mapping_free(mapping** map);
 #endif
