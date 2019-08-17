@@ -19,13 +19,12 @@ typedef struct{
 } float_datap;
 
 
-float k_means(int n_datap, mapping* map, int k, float (*distance_f)(pixel*, pixel*), void (*init_f)(int, mapping*, int, pixel*), int* clusters, pixel* c_means);
+float k_means(int n_datap, pixel_uint8* data, int k, float (*distance_f)(pixel, pixel), void (*init_f)(int, pixel_uint8*, int, pixel*), int* clusters, pixel* c_means);
 
 float euclidean_distance(pixel* p1, pixel* p2);
 
-float rgb_distance(pixel* p1, pixel*p2);
+float rgb_distance(pixel p1, pixel p2);
 
-void random_init_legacy(int n_datap, pixel_uint8* data, int k, pixel* c_means);
-void random_init(int n_datap, mapping* map, int k, pixel* c_means);
+void random_init(int n_datap, pixel_uint8* data, int k, pixel* c_means);
 
 int pixel_cmp(pixel* p1, pixel* p2);

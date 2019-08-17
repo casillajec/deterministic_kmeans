@@ -6,5 +6,6 @@
 cluster_image
 test.c
 test
+massif.out.*
 
 
