@@ -47,7 +47,7 @@ float rgb_distance(pixel p1, pixel p2){
 	return sqrt(s[0]*px[0]*px[0] + s[1]*px[1]*px[1] + s[2]*px[2]*px[2]);
 }
 
-float get_mse(int n_datap, pixel_uint8* data, pixel* c_means, int* clusters, float (*distance_f)(pixel, pixel)){
+float get_mse(int n_datap, pixel_uint8* data, int* data_count, pixel* c_means, int* clusters, float (*distance_f)(pixel, pixel)){
 	float mse = 0;
 	unsigned int acc = 0;
 	pixel aux;
@@ -55,9 +55,9 @@ float get_mse(int n_datap, pixel_uint8* data, pixel* c_means, int* clusters, flo
 	for(int i = 0; i < n_datap; i++){
 		aux = (pixel){data[i].r, data[i].g, data[i].b};
 		//mse += pow(distance_f(&aux, &c_means[clusters[i]]), 2)*mapping_walk->data_count;
-		mse += pow(distance_f(aux, c_means[clusters[i]]), 2)*1;
+		mse += pow(distance_f(aux, c_means[clusters[i]]), 2)*data_count[i];
 		//acc += mapping_walk->data_count;
-		acc += 1;
+		acc += data_count[i];
 	}
 
 	mse /= acc;
@@ -76,7 +76,7 @@ int means_equal(pixel* c_means, pixel* old_means, int k){
 	return equal;
 }
 
-float k_means(int n_datap, pixel_uint8* data, int k, float (*distance_f)(pixel, pixel), void (*init_f)(int, pixel_uint8*, int, pixel*), int* clusters, pixel* c_means){
+float k_means(int n_datap, pixel_uint8* data, int* data_count, int k, float (*distance_f)(pixel, pixel), void (*init_f)(int, pixel_uint8*, int, pixel*), int* clusters, pixel* c_means){
 
 	// Structure initialization
 	pixel* old_means = malloc(sizeof(pixel)*k);
@@ -119,11 +119,11 @@ float k_means(int n_datap, pixel_uint8* data, int k, float (*distance_f)(pixel, 
 
 		for(i = 0; i < n_datap; i++){
 			cluster_idx = clusters[i];
-			c_means[cluster_idx].r += data[i].r;//*mapping_walk->data_count;
-			c_means[cluster_idx].g += data[i].g;//*mapping_walk->data_count;
-			c_means[cluster_idx].b += data[i].b;//*mapping_walk->data_count;
+			c_means[cluster_idx].r += data[i].r*data_count[i];//*mapping_walk->data_count;
+			c_means[cluster_idx].g += data[i].g*data_count[i];//*mapping_walk->data_count;
+			c_means[cluster_idx].b += data[i].b*data_count[i];//*mapping_walk->data_count;
 			//mean_count[cluster_idx] += mapping_walk->data_count;
-			mean_count[cluster_idx] += 1;
+			mean_count[cluster_idx] += data_count[i];
 		}
 
 		for(i = 0; i < k; i++){
@@ -141,7 +141,7 @@ float k_means(int n_datap, pixel_uint8* data, int k, float (*distance_f)(pixel, 
 
 	printf("k-means itered %d times\n", it_count);
 
-	mse = get_mse(n_datap, data, c_means, clusters, distance_f);
+	mse = get_mse(n_datap, data, data_count, c_means, clusters, distance_f);
 	free(old_means);
 	free(mean_count);
 	return mse;
