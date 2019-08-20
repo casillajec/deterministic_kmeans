@@ -1,65 +1,38 @@
 #include <stdio.h>
-#include <math.h>
-#include <limits.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
 #include "kmeans.h"
-#include "mapping.h"
+#include "pimap.h"
 #include "pixel.h"
 
 char* build_output_path(char* img_path, int k){
-	char* output_path = NULL;
+	char *output_path = NULL, *img_name = NULL;
 	int i = (int) strlen(img_path) - 1;
 	int dot_idx = -1, slash_idx = -1;
-	int name_length = 0, buffer = 0;
+	int name_length = 0, buffer_size = 0;
 
 	// Find index of last / and last .
 	while(i >= 0){
-		if(img_path[i] == '.') dot_idx = i;
-		if(img_path[i] == '/') slash_idx = i;
+		if(img_path[i] == '.' && dot_idx == -1) dot_idx = i;
+		if(img_path[i] == '/' && slash_idx == -1) slash_idx = i;
 		i -= 1;
 	}
 	// Build string
 	name_length = (dot_idx - (slash_idx+1));
-	buffer = name_length + 1 + 10 + 4 + 1;
-	output_path = malloc(sizeof(char)*(buffer));
-	memset(output_path, 0, buffer);
+	buffer_size = name_length + 1 + 10 + 4 + 1 + 7;
+	img_name = malloc(name_length);
+	output_path = malloc(buffer_size);
+	memset(output_path, 0, buffer_size);
 
-	strncpy(output_path, &(img_path[slash_idx+1]), name_length);
-	sprintf(output_path, "%s_%d.png", output_path, k);
+	strncpy(img_name, &(img_path[slash_idx+1]), name_length);
+	sprintf(output_path, "images/%s_%d.png", img_name, k);
+
+	free(img_name);
 
 	return output_path;
-}
-
-void* pcube_init(){
-	void *pcube = malloc(256*256*256*3);
-	if(!pcube){
-		printf("Out of memmory\n");
-		exit(0);
-	}
-	memset(pcube, -1, 256*256*256*3);
-
-	return pcube;
-}
-
-void pcube_reset(void *pcube){
-	memset(pcube, -1, 256*256*256*3);
-}
-
-int pcube_get(void* pcube, pixel_uint8 p){
-	int ret = 0;
-	unsigned int offset = (p.b + p.g*256 + p.r*65536)*3;
-	memcpy(&ret, pcube + offset, 3);
-
-	return ret;
-}
-
-void pcube_set(void* pcube, pixel_uint8 p, int idx){
-	unsigned int offset = (p.b + p.g*256 + p.r*65536)*3;
-	memcpy(pcube + offset, &idx, 3);
 }
 
 char bcube_get(char* found, unsigned char r, unsigned char g, unsigned char b){
@@ -100,6 +73,7 @@ int main(int argc, char* argv[]){
 	char *img_path, *output_path;
 	unsigned char* img;
 	char flag_write = 0;
+	pimap pi_map = pimap_init();
 
 	// Read args
 	img_path = argv[1];
@@ -120,13 +94,12 @@ int main(int argc, char* argv[]){
 	n_pixels = width * height;
 
 	// Count unique pixels
-	void *pcube = pcube_init();
 	printf("Allocated pcube\n");
 	n_datap = 0;
 	for(i = 0; i < n_pixels; i++){
 		p_tmp = (pixel_uint8){img[i*3], img[(i*3)+1], img[(i*3)+2]};
-		if(pcube_get(pcube, p_tmp) == 0x00FFFFFF && n_datap < 256*256*256){
-			pcube_set(pcube, p_tmp, n_datap);
+		if(pimap_get(pi_map, p_tmp) == 0x00FFFFFF && n_datap < 256*256*256){
+			pimap_set(pi_map, p_tmp, n_datap);
 			n_datap++;
 		}
 	}
@@ -140,13 +113,13 @@ int main(int argc, char* argv[]){
 	printf("Data allocated\n");
 
 	// Build unique datap array
-	pcube_reset(pcube);
+	pimap_reset(pi_map);
 	uniquep_count = 0;
 	for(i = 0; i < n_pixels; i++){
 		p_tmp = (pixel_uint8){img[i*3], img[(i*3)+1], img[(i*3)+2]};
-		tmp = pcube_get(pcube, p_tmp);
+		tmp = pimap_get(pi_map, p_tmp);
 		if(tmp == 0x00FFFFFF && uniquep_count < n_datap){
-			pcube_set(pcube, p_tmp, uniquep_count);
+			pimap_set(pi_map, p_tmp, uniquep_count);
 			unique_data[uniquep_count] = p_tmp;
 			data_count[uniquep_count] = 1;
 			uniquep_count++;
@@ -167,7 +140,7 @@ int main(int argc, char* argv[]){
 		printf("Building new image\n");
 		for(i = 0; i < n_pixels; i++){
 			p_tmp = (pixel_uint8){img[i*3], img[(i*3)+1], img[(i*3)+2]};
-			tmp = pcube_get(pcube, p_tmp);
+			tmp = pimap_get(pi_map, p_tmp);
 			img[(i*3)  ] = (unsigned char) round(c_means[clusters[tmp]].r);
 			img[(i*3)+1] = (unsigned char) round(c_means[clusters[tmp]].g);
 			img[(i*3)+2] = (unsigned char) round(c_means[clusters[tmp]].b);
@@ -185,7 +158,7 @@ int main(int argc, char* argv[]){
 		free(c_means);
 		free(unique_data);
 		free(data_count);
-		free(pcube);
+		free(pi_map);
 	}
 
 	return 1;

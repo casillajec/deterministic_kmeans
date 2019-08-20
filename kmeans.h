@@ -1,5 +1,4 @@
 #include "pixel.h"
-#include "mapping.h"
 
 
 typedef struct {

@@ -6,7 +6,7 @@
 
 #include "kmeans.h"
 #include "pixel.h"
-#include "mapping.h"
+#include "int_list.h"
 
 #define EPS 1.0E-3
 
@@ -54,9 +54,7 @@ float get_mse(int n_datap, pixel_uint8* data, int* data_count, pixel* c_means, i
 
 	for(int i = 0; i < n_datap; i++){
 		aux = (pixel){data[i].r, data[i].g, data[i].b};
-		//mse += pow(distance_f(&aux, &c_means[clusters[i]]), 2)*mapping_walk->data_count;
 		mse += pow(distance_f(aux, c_means[clusters[i]]), 2)*data_count[i];
-		//acc += mapping_walk->data_count;
 		acc += data_count[i];
 	}
 
@@ -119,10 +117,9 @@ float k_means(int n_datap, pixel_uint8* data, int* data_count, int k, float (*di
 
 		for(i = 0; i < n_datap; i++){
 			cluster_idx = clusters[i];
-			c_means[cluster_idx].r += data[i].r*data_count[i];//*mapping_walk->data_count;
-			c_means[cluster_idx].g += data[i].g*data_count[i];//*mapping_walk->data_count;
-			c_means[cluster_idx].b += data[i].b*data_count[i];//*mapping_walk->data_count;
-			//mean_count[cluster_idx] += mapping_walk->data_count;
+			c_means[cluster_idx].r += data[i].r*data_count[i];
+			c_means[cluster_idx].g += data[i].g*data_count[i];
+			c_means[cluster_idx].b += data[i].b*data_count[i];
 			mean_count[cluster_idx] += data_count[i];
 		}
 

@@ -1,7 +1,7 @@
 default: cluster_image clean
 
-cluster_image: cluster_image.c kmeans.o mapping.o pixel.o
-	gcc cluster_image.c -o cluster_image -lm kmeans.o mapping.o pixel.o
+cluster_image: cluster_image.c kmeans.o pimap.o pixel.o int_list.o
+	gcc cluster_image.c -o cluster_image -lm kmeans.o pimap.o pixel.o int_list.o
 
 kmeans.o: kmeans.c
 	gcc -c kmeans.c -lm
@@ -9,11 +9,14 @@ kmeans.o: kmeans.c
 pixel.o: pixel.c
 	gcc -c pixel.c
 
-mapping.o: mapping.c
-	gcc -c mapping.c
+pimap.o: pimap.c
+	gcc -c pimap.c -lm
 
-test: test.c mapping.o
-	gcc test.c -o test mapping.o -lm
+int_list.o: int_list.c
+	gcc -c int_list.c
+
+test: test.c
+	gcc test.c -o test -lm
 
 clean:
 	rm *.o
