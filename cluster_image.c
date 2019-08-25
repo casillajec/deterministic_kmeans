@@ -35,26 +35,6 @@ char* build_output_path(char* img_path, int k){
 	return output_path;
 }
 
-char bcube_get(char* found, unsigned char r, unsigned char g, unsigned char b){
-
-	unsigned int offset = b + g*256 + r*65536;
-	unsigned char mask = 1 << (offset%8);
-	unsigned char res;
-	memcpy(&res, found + (offset/8), 1);
-	res = res & mask;
-	res = res >> (offset%8);
-
-	return res;
-}
-
-void bcube_set(char* found, unsigned char r, unsigned char g, unsigned char b){
-	unsigned int offset = b + g*256 + r*65536;
-	unsigned char mask = 1 << (offset%8);
-	unsigned char res = *(found + (offset/8));
-	res = res | mask;
-	memcpy(found + (offset/8), &res, 1);
-}
-
 int main(int argc, char* argv[]){
 
 	if (argc < 3){
@@ -73,7 +53,7 @@ int main(int argc, char* argv[]){
 	char *img_path, *output_path;
 	unsigned char* img;
 	char flag_write = 0;
-	pimap pi_map = pimap_init();
+	pimap pi_map;
 
 	// Read args
 	img_path = argv[1];
@@ -94,8 +74,8 @@ int main(int argc, char* argv[]){
 	n_pixels = width * height;
 
 	// Count unique pixels
-	printf("Allocated pcube\n");
 	n_datap = 0;
+	pi_map = pimap_init();
 	for(i = 0; i < n_pixels; i++){
 		p_tmp = (pixel_uint8){img[i*3], img[(i*3)+1], img[(i*3)+2]};
 		if(pimap_get(pi_map, p_tmp) == 0x00FFFFFF && n_datap < 256*256*256){
@@ -127,7 +107,6 @@ int main(int argc, char* argv[]){
 			data_count[tmp] += 1;
 		}
 	}
-	printf("Uniques has been built\n");
 
 	// Clusterize image
 	printf("Clustering data...\n");
