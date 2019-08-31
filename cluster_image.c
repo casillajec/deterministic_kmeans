@@ -7,6 +7,8 @@
 #include "kmeans.h"
 #include "pimap.h"
 #include "pixel.h"
+#include "distances.h"
+#include "initializers.h"
 
 char* build_output_path(char* img_path, int k){
 	char *output_path = NULL, *img_name = NULL;

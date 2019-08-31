@@ -6,46 +6,8 @@
 
 #include "kmeans.h"
 #include "pixel.h"
-#include "int_list.h"
 
 #define EPS 1.0E-3
-
-void random_init(int n_datap, pixel_uint8* data, int k, pixel* c_means){
-	// Seed rng
-	//srand(time(0));
-	srand(0);
-
-	// Initalize strucures and first random idx
-	int_list* seen = NULL;
-	int ridx;
-
-	// Find different random indices
-	for(int i = 0; i < k; i++){;
-		ridx = rand()%n_datap;
-
-		// Generate new idx until an unseen is generated
-		while(int_list_contains(seen, ridx)){ ridx = rand()%n_datap; }
-
-		c_means[i] = (pixel){data[ridx].r, data[ridx].g, data[ridx].b};
-		int_list_add_front(&seen, ridx);
-	}
-
-	// Free the allocated structures
-	int_list_free(&seen);
-}
-
-float euclidean_distance(pixel* p1, pixel* p2){
-	return sqrt( pow(p2->r - p1->r, 2) + pow(p2->g - p1->g, 2) + pow(p2->b - p1->b, 2) );
-}
-
-
-float rgb_distance(pixel p1, pixel p2){
-	float r, s[3], px[3];
-	r = (p1.r + p2.r)/2;
-	s[0] = (2+(r/256)); s[1] = 4; s[2] = ((2+(255-r))/256);
-	px[0] = p1.r - p2.r; px[1] =  p1.g - p2.g; px[2] = p1.b - p2.b;
-	return sqrt(s[0]*px[0]*px[0] + s[1]*px[1]*px[1] + s[2]*px[2]*px[2]);
-}
 
 float get_mse(int n_datap, pixel_uint8* data, int* data_count, pixel* c_means, int* clusters, float (*distance_f)(pixel, pixel)){
 	float mse = 0;
