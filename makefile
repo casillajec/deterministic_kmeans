@@ -1,7 +1,7 @@
 default: cluster_image clean
 
-cluster_image: cluster_image.c kmeans.o pimap.o pixel.o int_list.o distances.o initializers.o
-	gcc cluster_image.c -o cluster_image -lm kmeans.o pimap.o pixel.o int_list.o distances.o initializers.o
+cluster_image: cluster_image.c kmeans.o pimap.o pixel.o int_list.o distances.o initializers.o image_cmp.o
+	gcc cluster_image.c -o cluster_image -lm kmeans.o pimap.o pixel.o int_list.o distances.o initializers.o image_cmp.o
 
 kmeans.o: kmeans.c
 	gcc -c kmeans.c -lm
@@ -20,6 +20,9 @@ distances.o: distances.c
 
 initializers.o: initializers.c
 	gcc -c initializers.c
+
+image_cmp.o: image_cmp.c
+	gcc -c image_cmp.c
 
 test: test.c
 	gcc test.c -o test -lm

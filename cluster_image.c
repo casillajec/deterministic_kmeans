@@ -9,6 +9,7 @@
 #include "pixel.h"
 #include "distances.h"
 #include "initializers.h"
+#include "image_cmp.h"
 
 char* build_output_path(char* img_path, int k){
 	char *output_path = NULL, *img_name = NULL;
@@ -53,7 +54,7 @@ int main(int argc, char* argv[]){
 	float mse;
 	pixel_uint8 p_tmp;
 	char *img_path, *output_path;
-	unsigned char* img;
+	unsigned char *img, *new_img;
 	char flag_write = 0;
 	pimap pi_map;
 
@@ -85,6 +86,12 @@ int main(int argc, char* argv[]){
 			n_datap++;
 		}
 	}
+
+	// Check if it would make sense to perform the clustering
+	if(n_datap < k){
+		printf("K is too big, you are trying to cluster %i datapoints into %i clusters\n", n_datap, k);
+		exit(0);
+	}
 	printf("n_datap %d\n", n_datap);
 
 	// Allocate algorithm data
@@ -92,6 +99,7 @@ int main(int argc, char* argv[]){
 	data_count = malloc(sizeof(int)*n_datap);
 	clusters = (int*) malloc(sizeof(int)*n_datap);
 	c_means = malloc(sizeof(pixel)*k);
+	new_img = malloc(3*n_pixels);
 	printf("Data allocated\n");
 
 	// Build unique datap array
@@ -122,9 +130,9 @@ int main(int argc, char* argv[]){
 		for(i = 0; i < n_pixels; i++){
 			p_tmp = (pixel_uint8){img[i*3], img[(i*3)+1], img[(i*3)+2]};
 			tmp = pimap_get(pi_map, p_tmp);
-			img[(i*3)  ] = (unsigned char) round(c_means[clusters[tmp]].r);
-			img[(i*3)+1] = (unsigned char) round(c_means[clusters[tmp]].g);
-			img[(i*3)+2] = (unsigned char) round(c_means[clusters[tmp]].b);
+			new_img[(i*3)  ] = (unsigned char) round(c_means[clusters[tmp]].r);
+			new_img[(i*3)+1] = (unsigned char) round(c_means[clusters[tmp]].g);
+			new_img[(i*3)+2] = (unsigned char) round(c_means[clusters[tmp]].b);
 		}
 
 		// Write image to disk
@@ -132,8 +140,15 @@ int main(int argc, char* argv[]){
 		output_path = build_output_path(img_path, k);
 		stbi_write_png(output_path, width, height, 3, img, 0);
 
+		float lin_cmp = linear_cmp(img, new_img, n_pixels);
+		float avg_dis = avg_distance(n_datap, unique_data, c_means, clusters, data_count, n_pixels);
+		printf("lin_cmp: %f\n", lin_cmp);
+		printf("avg_dis: %f\n", avg_dis);
+		printf("rel error: %f\n", fabs(lin_cmp - avg_dis)/lin_cmp);
+
 		// Finally free structures
 		stbi_image_free(img);
+		stbi_image_free(new_img);
 		free(output_path);
 		free(clusters);
 		free(c_means);
