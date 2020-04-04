@@ -27,3 +27,7 @@ void random_init(int n_datap, pixel_uint8* data, int k, pixel* c_means){
 	// Free the allocated structures
 	int_list_free(&seen);
 }
+
+void mode_init(int n_datap, pixel_uint8* data, int k, pixel* c_means){
+
+}

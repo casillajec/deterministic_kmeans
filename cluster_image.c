@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <ctype.h>
+#include <unistd.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -39,37 +42,65 @@ char* build_output_path(char* img_path, int k){
 }
 
 int main(int argc, char* argv[]){
+	// Parse arguments
+	unsigned int k = 0, flag_write = 0;
+	char *img_path = NULL;
+	int c, index;
 
-	if (argc < 3){
-		printf("You must specify image_path and k\n");
-		exit(0);
+	while ((c = getopt(argc, argv, "i:k:w")) != -1){
+		switch(c){
+			case 'i':
+				img_path = optarg;
+				break;
+			case 'k':
+				k = atoi(optarg);
+				break;
+			case 'w':
+				flag_write = 1;
+				break;
+			case '?':
+				if (optopt == 'k' || optopt == 'i')
+					fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+				else if (isprint (optopt))
+					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+				else
+					fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+
+				return 1;
+			default:
+				abort();
+		}
 	}
+
+	// Validate input
+	if (img_path == NULL){
+		printf("You need to provide an image path\n");
+		return 1;
+	}
+
+	if(k <= 0){
+		printf("You need to provide a value for K greater than 0\n");
+		return 1;
+	}
+	printf("Clustering %s in %d clusters...\n", img_path, k);
 
 	// Declare all vars
 	printf("Data initialization...\n");
-	unsigned int n_pixels, n_datap, i, k, width, height, n, uniquep_count, tmp;
+	unsigned int n_pixels, n_datap, i, width, height, n, uniquep_count, tmp;
 	pixel *c_means;
 	pixel_uint8 *unique_data;
 	int *data_count, *clusters;
 	float mse;
 	pixel_uint8 p_tmp;
-	char *img_path, *output_path;
+	char *output_path;
 	unsigned char *img, *new_img;
-	char flag_write = 0;
 	pimap pi_map;
-
-	// Read args
-	img_path = argv[1];
-	k = atoi(argv[2]);
-	if(argc == 4){
-		flag_write = 1;
-	}
 
 	// Read image
 	img = stbi_load(img_path, &width, &height, &n, 3);
 	if(img == NULL){
 		printf("Could not load image\n");
-		exit(0);
+		return 1;
 	}
 	printf("width: %d, height: %d, n: %d\n", width, height, n);
 
@@ -90,7 +121,7 @@ int main(int argc, char* argv[]){
 	// Check if it would make sense to perform the clustering
 	if(n_datap < k){
 		printf("K is too big, you are trying to cluster %i datapoints into %i clusters\n", n_datap, k);
-		exit(0);
+		return 1;
 	}
 	printf("n_datap %d\n", n_datap);
 
@@ -157,5 +188,5 @@ int main(int argc, char* argv[]){
 		free(pi_map);
 	}
 
-	return 1;
+	return 0;
 }
